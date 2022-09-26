@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="pao_auditorias_view_tree" model="ir.ui.view">
+        <field name="name">pao.auditorias.tree</field>
+        <field name="model">pao.auditorias</field>
+        <field name="arch" type="xml">
+            <tree string="Auditorias">
+                <field name="numero"/>
+                <field name="cliente"/>
+                <field name="pais"/>
+                <field name="estado"/>
+                <field name="ciudad"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pao_auditorias_view_form" model="ir.ui.view">
+        <field name="name">pao.auditorias.form</field>
+        <field name="model">pao.auditorias</field>
+        <field name="arch" type="xml">
+            <form string="Auditorias">
+                <sheet>
+                    <group col='2'>
+                        <field name="numero"/>
+                        <field name="cliente"/>
+                        <field name="pais"/>
+                        <field name="estado" domain="[('country_id', '=', pais)]"/>
+                        <field name="ciudad"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pao_auditorias_action" model="ir.actions.act_window">
+        <field name="name">Pao Auditorias Action</field>
+        <field name="res_model">pao.auditorias</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="pao_auditorias_menu" name= "Auditorias" parent="sale.sale_order_menu" action="pao_auditorias_action" sequence="7" />
+
+    <record model="ir.ui.view" id="sale_order_view_inherit">
+    <field name="name">sale.order.view.inherit1</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+        <xpath expr="/form/sheet/notebook/page/field[@name='order_line']/tree/field[@name='price_subtotal']" position="after">
+            <field name="auditoria_ids" domain="[('cliente', '=', parent.partner_id)]"/>
+        </xpath>
+    </field>
+</record>
+</odoo>

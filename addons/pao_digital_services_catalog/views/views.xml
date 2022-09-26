@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="pao_digital_services_catalog_menu" model="website.menu">
+            <field name="name">Services</field>
+            <field name="url">/services</field>
+            <field name= "parent_id" ref="website.main_menu"/>
+            <field name="sequence" type="int">11</field>
+        </record>
+
+        <template id="service_data" name="Service Page">
+            <t t-call="website.layout">
+                <div class = 'oe_structure'>
+                    <div class= 'container'>
+                        <center><h3>Service Details</h3></center>
+                        <iframe allowfullscreen="" scrolling="no" class="fp-iframe" style="border: 1px solid lightgray; width: 100%; height: 400px;" src="https://heyzine.com/flip-book/1b6fa93378.html"></iframe>
+                    </div>
+                </div> 
+    
+            </t>
+            
+        </template>
+
+        <record id="services_page" model="website.page">
+            <field name="name">Services page</field>
+            <field name="website_published">True</field>
+            <field name="url">/services</field>
+            <field name="view_id" ref="service_data"/>
+        </record>
+
+
+    </data>
+</odoo>
