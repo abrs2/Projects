@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="pao_digital_catalog_pdf_view_tree" model="ir.ui.view">
+            <field name="name">pao.digital.catalog.pdf.tree</field>
+            <field name="model">pao.digital.catalog.pdf</field>
+            <field name="arch" type="xml">
+                <tree string="Catalog PDFs">
+                    <field name="name"/>
+                    <field name="catalog"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="pao_digital_catalog_pdf_view_form" model="ir.ui.view">
+            <field name="name">pao.digital.catalog.pdf.form</field>
+            <field name="model">pao.digital.catalog.pdf</field>
+            <field name="arch" type="xml">
+                <form string="Catalog PDF FIles">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="catalog" widget="pdf_viewer"/>
+                            <field name="images"  widget="image"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="pao_digital_catalog_pdf_action" model="ir.actions.act_window">
+            <field name="name">Pao Digital Catalog Pdf</field>
+            <field name="res_model">pao.digital.catalog.pdf</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+        <menuitem id="pao_digital_catalog_pdf" name="Digital Catalogs" parent="stock.menu_warehouse_report"
+        action="pao_digital_catalog_pdf_action" sequence="151"/>               
+
+
+    </data>
+</odoo>
