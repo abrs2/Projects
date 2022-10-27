@@ -136,7 +136,7 @@ class PaoTrackingServices(http.Controller):
                             "name": attachment.name,
                             "localUrl": attachment.local_url,
                             "type": attachment.type,
-                            "mimetype": attachment.mimetype,
+                            "mimetype": attachment.mimetype
                         }
                     )
 
