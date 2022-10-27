@@ -1,9 +1,8 @@
 
 from crypt import methods
-from locale import currency
+import math
 from odoo import http, _, fields
 from odoo.http import request
-from openerp.api import Environment as Env
 from odoo.tools import html2plaintext, DEFAULT_SERVER_DATETIME_FORMAT as dtf
 from odoo.tools.misc import get_lang
 from logging import getLogger
@@ -11,7 +10,6 @@ from odoo.addons.web.controllers.main import content_disposition
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager, get_records_pager
 from functools import reduce
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager, get_records_pager
-import symbol
 
 _logger = getLogger(__name__)
 
@@ -19,7 +17,7 @@ _logger = getLogger(__name__)
 class PaoTrackingServices(http.Controller):
 
     @http.route('/pao/tracking/my/quotes', type='json', auth="user")
-    def track_my_quotes(self, page = 1 , item_per_page = 10, **kw):
+    def track_my_quotes(self, page=1, item_per_page=10, **kw):
 
         partner = request.env.user.partner_id
 
@@ -46,13 +44,32 @@ class PaoTrackingServices(http.Controller):
         # search the count to display, according to the pager data
         quotations = SaleOrder.search(
             domain, order=sort_order, limit=item_per_page, offset=pager['offset'])
-        
-        result = quotations.read(['name','payment_term_id', 'date_order','validity_date','is_expired','amount_tax','amount_untaxed','amount_total'])
 
-        result[0]['currency_unit_label']=quotations.pricelist_id.sudo().currency_id.currency_unit_label
-        result[0]['symbol']=quotations.pricelist_id.sudo().currency_id.symbol
+        sales = []
 
-        return result
+        for quote in quotations:
+            sales.append(
+                {
+                    "id": quote.id,
+                    "name": quote.name,
+                    "paymentTermId": quote.payment_term_id.sudo().name,
+                    "dateOrder": quote.date_order,
+                    "validityDate": quote.validity_date,
+                    "isExpired": quote.is_expired,
+                    "amountTax": quote.amount_tax,
+                    "amountUntaxed": quote.amount_untaxed,
+                    "amountTotal": quote.amount_total,
+                    "currencyLabel": quote.pricelist_id.sudo().currency_id.currency_unit_label,
+                    "currencySymbol": quote.pricelist_id.sudo().currency_id.symbol,
+                    "state": quote.state,
+                    "messageIds": quote.message_ids
+                }
+            )
+
+        page_count = int(math.ceil(float(quotation_count)/item_per_page))
+        response = {"pageCount": page_count, "detail": sales}
+
+        return response
 
     @http.route('/pao/tracking/my/quotes/detail', type='json', auth="user")
     def track_quotation_detail(self, order_id, **kw):
@@ -61,22 +78,22 @@ class PaoTrackingServices(http.Controller):
 
         SaleOrder = request.env['sale.order']
 
-        domain = [('id','=',order_id)]
+        domain = [('id', '=', order_id)]
 
         order = SaleOrder.search(domain)
 
-        services=[]
-        
+        services = []
 
         for line in order.order_line:
-            taxes= []
+            taxes = []
             for tax in line.tax_id:
                 taxes.append(tax.name)
             services.append(
                 {
-                    "taxes": taxes, 
+                    "id": line.id,
+                    "taxes": taxes,
                     "productId": line.product_id.id,
-                    "name":line.name,
+                    "name": line.name,
                     "productQty": line.product_uom_qty,
                     "priceUnit": line.price_unit,
                     "priceSubtotal": line.price_subtotal,
@@ -84,14 +101,52 @@ class PaoTrackingServices(http.Controller):
 
                 }
             )
-        
+
         return services
 
-    def _get_quotation_domain(self,partner):
+    @http.route('/pao/tracking/my/messages', type='json', auth="user")
+    def track_messages(self, document_model, document_id, **kw):
+
+        partner = request.env.user.partner_id
+
+        domain = [('model', '=', document_model), ('res_id', '=', document_id)]
+        sort_order = 'date desc'
+        messages = request.env["mail.message"].search(domain, order=sort_order)
+
+        defined_messages = []
+
+        for message in messages:
+
+            if (not message.subtype_id.sudo().internal) and (not message.is_internal) and (message.message_type in ['email', 'comment']):
+
+                defined_messages.append(
+                    {
+                        "subject": message.subject,
+                        "date": message.date,
+                        "author": message.author_id.name,
+                        "from": message.email_from,
+                        "body": message.body,
+                    }
+                )
+                attachments = []
+
+                for attachment in message.attachment_ids:
+                    attachments.append(
+                        {
+                            "name": attachment.name,
+                            "localUrl": attachment.local_url,
+                            "type": attachment.type,
+                            "mimetype": attachment.mimetype,
+                        }
+                    )
+
+                defined_messages.append({"attachments":attachments})
+
+        return defined_messages
+
+    def _get_quotation_domain(self, partner):
         return [
             ('message_partner_ids', 'child_of', [
              partner.commercial_partner_id.id]),
-            ('state', '=', 'sent')
+            ('state', 'in', ['sent', 'sale', 'done'])
         ]
-
-    
