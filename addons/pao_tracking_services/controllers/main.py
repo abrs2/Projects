@@ -16,6 +16,8 @@ _logger = getLogger(__name__)
 
 class PaoTrackingServices(http.Controller):
 
+    # Método que toma como parámetros un número de página y un número de cotizaciones por página
+    # Regresa una lista con el valor del conteo de páginas y las cotizaciones del numero de página solicitada.
     @http.route('/pao/tracking/my/quotes', type='json', auth="user")
     def track_my_quotes(self, page=1, item_per_page=10, **kw):
 
@@ -70,7 +72,9 @@ class PaoTrackingServices(http.Controller):
         response = {"pageCount": page_count, "detail": sales}
 
         return response
-
+   
+    # Método que toma como parámetro el id de una orden de venta convertida en cotización.
+    # Regresa una lista con los detalles de la cotización solicitada.
     @http.route('/pao/tracking/my/quotes/detail', type='json', auth="user")
     def track_quotation_detail(self, order_id, **kw):
 
@@ -104,16 +108,19 @@ class PaoTrackingServices(http.Controller):
 
         return services
 
+    # Método que toma como parámetros el nombre del modelo y el id del documento.
+    # Regresa una lista con todo el historial de mensajes relacionados al documento que no son del sistema.
     @http.route('/pao/tracking/my/messages', type='json', auth="user")
     def track_messages(self, document_model, document_id, **kw):
 
         partner = request.env.user.partner_id
 
         domain = [('model', '=', document_model), ('res_id', '=', document_id)]
-        sort_order = 'date desc'
-        messages = request.env["mail.message"].search(domain, order=sort_order)
+        sort_order = 'date asc'
+        messages = request.env["mail.message"].sudo().search(domain, order=sort_order)
 
         defined_messages = []
+        count = 0
 
         for message in messages:
 
@@ -123,7 +130,7 @@ class PaoTrackingServices(http.Controller):
                     {
                         "subject": message.subject,
                         "date": message.date,
-                        "author": message.author_id.name,
+                        "author": message.author_id.sudo().name,
                         "from": message.email_from,
                         "body": message.body,
                     }
@@ -140,7 +147,8 @@ class PaoTrackingServices(http.Controller):
                         }
                     )
 
-                defined_messages.append({"attachments":attachments})
+                defined_messages[count]["attachments"]=attachments
+                count+=1
 
         return defined_messages
 
@@ -150,3 +158,4 @@ class PaoTrackingServices(http.Controller):
              partner.commercial_partner_id.id]),
             ('state', 'in', ['sent', 'sale', 'done'])
         ]
+
