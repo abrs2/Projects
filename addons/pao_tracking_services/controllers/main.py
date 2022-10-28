@@ -64,7 +64,7 @@ class PaoTrackingServices(http.Controller):
                     "currencyLabel": quote.pricelist_id.sudo().currency_id.currency_unit_label,
                     "currencySymbol": quote.pricelist_id.sudo().currency_id.symbol,
                     "state": quote.state,
-                    "messageIds": quote.message_ids
+                    "accessToken": quote.access_token
                 }
             )
 
