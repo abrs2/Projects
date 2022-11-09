@@ -24,6 +24,7 @@ class EstateProperty(models.Model):
     property_type_id = fields.Many2one("estate.property.type",string="Property Type")
     description =fields.Text('Description')
     postcode = fields.Char('Postcode',required=True)
+
     date_availability = fields.Date('Available From',default=dateInThreeMonths(),copy=False)
     expected_price = fields.Float('Expected Price',required=True)
     selling_price = fields.Float('Selling Price',readonly=True, copy=False)
@@ -31,6 +32,7 @@ class EstateProperty(models.Model):
     living_area = fields.Integer('Living Area (sqm)')
     facades = fields.Integer('Facades')
     garage = fields.Boolean('Garage')
+
     garden = fields.Boolean('Garden')
     garden_area = fields.Integer('Garden Area')
     total_area = fields.Integer("Total Area(sqm)",compute="_compute_area",readonly=True)
@@ -39,6 +41,7 @@ class EstateProperty(models.Model):
         selection=[('please choose one','Please Choose One'),('north','North'), ('south','South'), ('east','East'),('west', 'West')],
         help="Garden Orientation is used to indicate where the garden is", default= 'please choose one',
         )    
+        
     active= fields.Boolean('Active',default=True) 
     state = fields.Selection(
         string='State',
